@@ -6,6 +6,11 @@
 #include <map>
 #include <set>
 #include <limits>
+#include <cassert>
+#include <vector>
+#include <limits>
+#include <algorithm>  // std::max
+#include <iostream>   // std::istream
 
 
 // Constructor that initializes the graph with n nodes
@@ -141,6 +146,83 @@ void Graph::read_dimacs(std::istream& in) {
     // print_residual_graph();
 }
 
+void Graph::fromTournament(std::istream& in) {
+    int n;
+    in >> n;
+    assert(n > 1);
+
+    // vitórias já obtidas
+    std::vector<int> w(n);
+    for (int i = 0; i < n; ++i) in >> w[i];
+
+    // matriz triangular de jogos restantes
+    std::vector<std::vector<int>> g(n, std::vector<int>(n, 0));
+    for (int i = 0; i < n; ++i)
+        for (int j = i + 1; j < n; ++j) {
+            in >> g[i][j];
+            g[j][i] = g[i][j];
+        }
+
+    // 1) r1 e maxW1
+    int r1 = 0;
+    for (int j = 1; j < n; ++j)
+        r1 += g[0][j];
+    int maxW1 = w[0] + r1;
+
+    // 2) mi para i>=1
+    std::vector<int> m(n);
+    for (int i = 1; i < n; ++i) {
+        m[i] = maxW1 - w[i] - 1;
+        if (m[i] < 0) {
+            // Eliminado, grafo vazio
+            this->n = 0;
+            this->source = this->sink = -1;
+            this->adj_list.clear();
+            return;
+        }
+    }
+
+    // 3) colecione pares (i,j), i>=1<j
+    struct P { int i, j; };
+    std::vector<P> games;
+    int totalGames = 0;
+    for (int i = 1; i < n; ++i)
+        for (int j = i + 1; j < n; ++j)
+            if (g[i][j] > 0) {
+                games.push_back({i, j});
+                totalGames += g[i][j];
+            }
+
+    int Gm = games.size();
+    // índices: 0=S, 1..Gm=games, Gm+1..Gm+(n-1)=teams 2..n, last=T
+    this->n = 1 + Gm + (n - 1) + 1;
+    this->adj_list.assign(this->n, {});
+    this->source = 0;
+    this->sink   = this->n - 1;
+
+    const int INF = std::numeric_limits<int>::max() / 2;
+    int gameStart = 1;
+    int teamStart = gameStart + Gm;
+
+    // arestas S → game
+    for (int idx = 0; idx < Gm; ++idx) {
+        int i = games[idx].i;
+        int j = games[idx].j;
+        this->add_edge(source, gameStart + idx, g[i][j]);
+    }
+
+    // game → teams
+    for (int idx = 0; idx < Gm; ++idx) {
+        int i = games[idx].i;
+        int j = games[idx].j;
+        this->add_edge(gameStart + idx, teamStart + (i - 1), INF);
+        this->add_edge(gameStart + idx, teamStart + (j - 1), INF);
+    }
+
+    // teams → T
+    for (int i = 1; i < n; ++i)
+        this->add_edge(teamStart + (i - 1), sink, m[i]);
+}
 
 void Graph::compress_graph() {
     // Mapa para armazenar capacidades de ida e volta entre pares (u, v)

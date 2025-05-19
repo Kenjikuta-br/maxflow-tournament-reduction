@@ -46,6 +46,7 @@ public:
 
     void add_edge(int from, int to, int capacity);         // Adds forward and reverse edge
     void read_dimacs(std::istream& in);                    // Load graph in DIMACS format
+    void fromTournament(std::istream& in);
     void compress_graph();
     void print_residual_graph() const;
 

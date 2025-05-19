@@ -10,56 +10,39 @@
 #include <iostream>
 #include <string>
 
-int main(int argc, char* argv[]) {
-    bool is_ford_fulkerson = true;
+int main() {
+    std::ios::sync_with_stdio(false);
+    std::cin.tie(nullptr);
 
-    if (argc < 2) {
-        std::cerr << "Uso: " << argv[0] << " bfs|dfs|fat|scaling|dinics < dimacs_graph\n";
-        return 1;
-    }
-
-    std::string strategy_name = argv[1];
-    PathFindingStrategy strategy = nullptr;
-    AlgorithmType type;
-
-    if (strategy_name == "bfs") {
-        strategy = bfs_path;
-        type = AlgorithmType::BFS_EDMONDS_KARP;
-    } else if (strategy_name == "dfs") {
-        strategy = dfs_path;
-        type = AlgorithmType::DFS_RANDOM;
-    } else if (strategy_name == "fat") {
-        strategy = fattest_path;
-        type = AlgorithmType::FATTEST_PATH;
-    } else if (strategy_name == "scaling") {
-        strategy = capacity_scaling_path;
-        type = AlgorithmType::CAPACITY_SCALING;
-    } else if (strategy_name == "dinics") {
-        is_ford_fulkerson = false;
-        //strategy = dinics_path;
-        //std::cerr << "Ainda não implementado dinics\n";
-    } else {
-        std::cerr << "Estrategia inválida: " << strategy_name << ". Use bfs ou dfs.\n";
-        return 1;
-    }
-
+    // 1. Constrói o grafo a partir do torneio
     Graph graph;
-    graph.read_dimacs(std::cin);
+    graph.fromTournament(std::cin);
 
-    int source = graph.get_source();
-    int sink = graph.get_sink();
-    int max_flow = -3;
-
-    FFStats stats;
-
-    if(is_ford_fulkerson){
-        max_flow = ford_fulkerson(graph, source, sink, strategy, type, &stats);
-    }else{
-        max_flow = dinic_max_flow(graph, source, sink);
+    // Caso trivial: já eliminado ao construir
+    if (graph.get_source() == -1 || graph.get_sink() == -1) {
+        std::cout << "nao\n";
+        return 0;
     }
 
+    // 2. Calcula fluxo máximo
+    FFStats stats;
+    int max_flow = ford_fulkerson(
+        graph,
+        graph.get_source(),
+        graph.get_sink(),
+        capacity_scaling_path,
+        AlgorithmType::CAPACITY_SCALING,
+        &stats
+    );
 
-    std::cout << max_flow << "\n";
+    // 3. Verifica total de partidas restantes do time 1
+    int total_remaining_games = graph.total_out_capacity(graph.get_sink());
+
+    // 4. Decide se o time 1 pode vencer
+    if (max_flow == total_remaining_games)
+        std::cout << "sim\n";
+    else
+        std::cout << "nao\n";
 
     return 0;
 }
