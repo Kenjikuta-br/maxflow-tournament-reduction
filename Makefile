@@ -30,13 +30,11 @@ C_OBJECT = $(OBJ_DIR)/generate_tournament.o
 RITT_SOURCE = $(SRC_DIR)/support_code_ritt/maxflow.cpp
 
 # Executáveis
-EXEC_MAIN = $(BIN_DIR)/max_flow
+EXEC_MAIN = $(BIN_DIR)/tournament
 EXEC_GEN = $(BIN_DIR)/gen_tournament
 EXEC_RITT = $(BIN_DIR)/ritt_max_flow
-EXEC_TEST = $(BIN_DIR)/robust_test
-
 # Alvo padrão
-all: $(EXEC_MAIN) $(EXEC_GEN) $(EXEC_RITT) $(EXEC_TEST)
+all: $(EXEC_MAIN) $(EXEC_GEN) $(EXEC_RITT)
 
 # Criação dos diretórios bin e obj
 $(BIN_DIR):
