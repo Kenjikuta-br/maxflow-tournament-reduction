@@ -151,11 +151,11 @@ void Graph::fromTournament(std::istream& in) {
     in >> n;
     assert(n > 1);
 
-    // vitórias já obtidas
+    // current wins for each team
     std::vector<int> w(n);
     for (int i = 0; i < n; ++i) in >> w[i];
 
-    // matriz triangular de jogos restantes
+    // remaining games matrix (upper triangular)
     std::vector<std::vector<int>> g(n, std::vector<int>(n, 0));
     for (int i = 0; i < n; ++i)
         for (int j = i + 1; j < n; ++j) {
@@ -163,26 +163,20 @@ void Graph::fromTournament(std::istream& in) {
             g[j][i] = g[i][j];
         }
 
-    // 1) r1 e maxW1
+    // compute total games remaining for team 1 and its max possible wins
     int r1 = 0;
     for (int j = 1; j < n; ++j)
         r1 += g[0][j];
     int maxW1 = w[0] + r1;
 
-    // 2) mi para i>=1
+    // compute allowed additional wins for other teams (clamped at 0)
     std::vector<int> m(n);
     for (int i = 1; i < n; ++i) {
         m[i] = maxW1 - w[i] - 1;
-        if (m[i] < 0) {
-            // Eliminado, grafo vazio
-            this->n = 0;
-            this->source = this->sink = -1;
-            this->adj_list.clear();
-            return;
-        }
+        if (m[i] < 0) m[i] = 0;
     }
 
-    // 3) colecione pares (i,j), i>=1<j
+    // collect all remaining games between teams 2..n
     struct P { int i, j; };
     std::vector<P> games;
     int totalGames = 0;
@@ -194,7 +188,7 @@ void Graph::fromTournament(std::istream& in) {
             }
 
     int Gm = games.size();
-    // índices: 0=S, 1..Gm=games, Gm+1..Gm+(n-1)=teams 2..n, last=T
+    // vertices: 0 = source, 1..Gm = game nodes, Gm+1..Gm+n-1 = teams 2..n, last = sink
     this->n = 1 + Gm + (n - 1) + 1;
     this->adj_list.assign(this->n, {});
     this->source = 0;
@@ -204,14 +198,14 @@ void Graph::fromTournament(std::istream& in) {
     int gameStart = 1;
     int teamStart = gameStart + Gm;
 
-    // arestas S → game
+    // edges: source → each game node (capacity = number of games)
     for (int idx = 0; idx < Gm; ++idx) {
         int i = games[idx].i;
         int j = games[idx].j;
         this->add_edge(source, gameStart + idx, g[i][j]);
     }
 
-    // game → teams
+    // edges: game node → both participating teams (infinite capacity)
     for (int idx = 0; idx < Gm; ++idx) {
         int i = games[idx].i;
         int j = games[idx].j;
@@ -219,7 +213,7 @@ void Graph::fromTournament(std::istream& in) {
         this->add_edge(gameStart + idx, teamStart + (j - 1), INF);
     }
 
-    // teams → T
+    // edges: each team → sink (capacity = allowed wins)
     for (int i = 1; i < n; ++i)
         this->add_edge(teamStart + (i - 1), sink, m[i]);
 }

@@ -18,9 +18,10 @@ int main() {
     Graph graph;
     graph.fromTournament(std::cin);
 
+
     // Caso trivial: já eliminado ao construir
     if (graph.get_source() == -1 || graph.get_sink() == -1) {
-        std::cout << "construi errado ou caso trivial\n";
+        std::cout << "não\n";
         return 0;
     }
 
@@ -38,14 +39,14 @@ int main() {
     // 3. Verifica total de partidas restantes do time 1
     int total_remaining_games = graph.total_out_capacity(graph.get_source());
 
-    std::cout << "total_remaining_games: " << total_remaining_games << '\n';
-    std::cout << "max_flow: " << max_flow << '\n';
+    //std::cout << "total_remaining_games: " << total_remaining_games << '\n';
+    //std::cout << "max_flow: " << max_flow << '\n';
 
     // 4. Decide se o time 1 pode vencer
     if (max_flow == total_remaining_games)
         std::cout << "sim\n";
     else
-        std::cout << "nao\n";
+        std::cout << "não\n";
 
     return 0;
 }
