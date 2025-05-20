@@ -100,6 +100,10 @@ int Graph::get_sink() const {
     return sink;
 }
 
+bool Graph::get_cant_be_champion() const {
+    return cant_be_champion;
+}
+
 // Reads a graph in DIMACS max-flow format from an input stream
 void Graph::read_dimacs(std::istream& in) {
     std::string line;
@@ -173,7 +177,10 @@ void Graph::fromTournament(std::istream& in) {
     std::vector<int> m(n);
     for (int i = 1; i < n; ++i) {
         m[i] = maxW1 - w[i] - 1;
-        if (m[i] < 0) m[i] = 0;
+        if (m[i] < 0){
+            this->cant_be_champion = true;
+            m[i] = 0;
+        }
     }
 
     // collect all remaining games between teams 2..n

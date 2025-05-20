@@ -9,12 +9,12 @@
 
 #include <iostream>
 #include <string>
+#include <chrono>
 
 int main() {
-    std::ios::sync_with_stdio(false);
-    std::cin.tie(nullptr);
-
-    // 1. Constrói o grafo a partir do torneio
+    auto start = std::chrono::high_resolution_clock::now();
+    
+     // 1. Constrói o grafo a partir do torneio
     Graph graph;
     graph.fromTournament(std::cin);
 
@@ -33,16 +33,14 @@ int main() {
     // 3. Verifica total de partidas restantes do time 1
     int total_remaining_games = graph.total_out_capacity(graph.get_source());
 
+    (void)max_flow;
+    (void)total_remaining_games;
 
+        
+    auto end = std::chrono::high_resolution_clock::now();
 
-    // 4. Decide se o time 1 pode vencer
-
-    if (graph.get_cant_be_champion()) {
-        std::cout << "não\n";
-    }else if(max_flow == total_remaining_games)
-        std::cout << "sim\n";
-    else
-        std::cout << "não\n";
+    std::chrono::duration<double> duration = end - start;
+    std::cout << duration.count() << std::endl;
 
     return 0;
 }

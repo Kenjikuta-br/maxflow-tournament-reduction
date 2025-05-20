@@ -64,6 +64,7 @@ public:
 
     int get_source() const;                                // Source node index
     int get_sink() const;                                  // Sink node index
+    bool get_cant_be_champion() const;
 
 private:
     int n;                                                 // Number of nodes
@@ -71,5 +72,6 @@ private:
     int next_edge_id = 0;
     int next_edge_id_reverse = 0;
     int next_edge_id_aux = 0;
+    bool cant_be_champion = false;
     std::vector<std::vector<Edge>> adj_list;               // Adjacency list
 };
